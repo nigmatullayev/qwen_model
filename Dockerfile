@@ -1,24 +1,41 @@
-FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
+# Base image - CUDA bilan
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
-WORKDIR /workspace
+# Environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
-# Kerakli Python kutubxonalar
+# System dependencies o'rnatish
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    git \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Working directory yaratish
+WORKDIR /app
+
+# Python dependencies o'rnatish
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Modelni oldindan yuklab olish
-RUN mkdir -p /models/sdxl
-RUN python3 - <<EOF
-from diffusers import DiffusionPipeline
-pipe = DiffusionPipeline.from_pretrained(
-    "stabilityai/sdxl-turbo",
-    torch_dtype="auto"
-)
-pipe.save_pretrained("/models/sdxl")
-EOF
-
+# Application fayllarini ko'chirish
 COPY handler.py .
 COPY start.sh .
+
+# start.sh ga execute permission berish
 RUN chmod +x start.sh
 
-CMD ["/workspace/start.sh"]
+# Modelni oldindan yuklash (optional, build vaqtida)
+# Bu build vaqtini oshiradi lekin run vaqtini kamaytiradi
+# RUN python3 -c "from transformers import AutoModelForCausalLM, AutoTokenizer; \
+#     AutoTokenizer.from_pretrained('Qwen/Qwen-VL-Chat', trust_remote_code=True); \
+#     AutoModelForCausalLM.from_pretrained('Qwen/Qwen-VL-Chat', trust_remote_code=True)"
+
+# Port expose qilish (optional)
+EXPOSE 8000
+
+# Container ishga tushganda start.sh ni bajarish
+CMD ["/app/start.sh"]

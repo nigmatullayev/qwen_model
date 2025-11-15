@@ -1,6 +1,8 @@
-diffusers==0.30.0
-transformers==4.41.0
-accelerate
-torch
-safetensors
-runpod
+runpod==1.5.0
+torch==2.1.0
+transformers==4.37.0
+accelerate==0.25.0
+Pillow==10.1.0
+einops==0.7.0
+transformers_stream_generator==0.0.4
+tiktoken==0.5.2
